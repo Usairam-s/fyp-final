@@ -30,6 +30,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import toast from "react-hot-toast";
 
 function HaveImage() {
   const copyToClipboard = useCopyClipboard();
@@ -65,6 +66,7 @@ function HaveImage() {
   };
 
   const uploadImage = async () => {
+    const toastId = toast.loading("Searching for your item!!!");
     const dataCloud = new FormData();
     dataCloud.append("file", file);
     dataCloud.append("upload_preset", "test123");
@@ -98,11 +100,18 @@ function HaveImage() {
 
     if (!data.ok) {
       console.error("Error fetching search samples:", data.statusText);
+      toast.error("Something went wrong! Try agian later", { id: toastId });
+      setLoading(false);
       return; // Exit the function early if the fetch fails
     }
 
     const response = await data.json();
     const searchSamples = response.searchSamples;
+    if (searchSamples.length === 0) {
+      toast.error("No item found! Try agian later", { id: toastId });
+      setLoading(false);
+      return;
+    }
     console.log(searchSamples);
 
     try {
@@ -139,12 +148,15 @@ function HaveImage() {
         }
       }
 
+      toast.success("See the items below!!", { id: toastId });
       setResultArray(fetchedImages); // Update resultArray with valid image URLs
       setDone(true);
       setLoading(false);
       console.log(resultArray);
     } catch (error) {
+      toast.error("Try again later!!", { id: toastId });
       console.error("Error fetching data:", error);
+      setLoading(false);
     }
   };
 

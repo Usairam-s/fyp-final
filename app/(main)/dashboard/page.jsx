@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import React from "react";
 import { BarChartBig, CalendarDays } from "lucide-react";
+import Pending from "../../components/Pending";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -43,6 +44,10 @@ function Dashboard() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div>
+        <Pending />
       </div>
     </>
   );

@@ -4,8 +4,9 @@ import { FileInput, Label } from "flowbite-react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast from "react-hot-toast";
+import Link from "next/link";
+
 import { useRouter } from "next/navigation";
 
 import {
@@ -28,6 +29,17 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CalendarCheck } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 function DashUpload() {
   const router = useRouter();
@@ -42,7 +54,26 @@ function DashUpload() {
   const [allVenues, setAllVenues] = useState([]);
   const [date, setDate] = useState();
   const [disbaleUpload, setDisableUpload] = useState(true);
+  const [resultArray, setResultArray] = useState([]);
+  const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
+  // token for sample search
+  const [accessToken, setAccessToken] = useState("");
+  // token for sample search
 
+  //token for seraching the samples
+  useEffect(() => {
+    fetch("https://www.nyckel.com/connect/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "client_id=32ofdqbrxk311xhpzv4hie70sub4o3r5&client_secret=ov94sajr1bsoxq4siygiay8ovnnif73utxc5ncwpccg7li21qilpm9uqnk94n0ct&grant_type=client_credentials",
+    })
+      .then((response) => response.json())
+      .then((data) => setAccessToken(data.access_token));
+  }, []);
+  //token for seraching the samples
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     setFile(file);
@@ -190,36 +221,112 @@ function DashUpload() {
       venue: venue,
       date: date,
     };
+    ///
 
-    console.log(lostItemData);
-    try {
-      const response = await fetch(
-        "http://localhost:5000/api/lostitem/savedata",
-        {
-          method: "POST",
+    // getting samples
+    const data = await fetch(
+      "https://www.nyckel.com/v1/functions/qrv1midmav189yws/invoke?sampleCount=3",
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ data: imageUrl }),
+      },
+      { cache: "no-store" }
+    );
 
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(lostItemData),
-        }
-      );
+    if (!data.ok) {
+      console.error("Error fetching search samples:", data.statusText);
 
-      if (response.ok) {
-        toast.success("LostItem Saved Successfully!", {
-          position: "top-center",
-          onClose: () => {
-            router.push("/dashboard/allrequests");
-          },
-        });
-      } else {
-        toast.error("Failed to save LostItem. Please try again later.", {
-          position: "top-center",
-        });
-      }
-    } catch (error) {
-      console.error("Error occurred while saving data:", error);
+      setLoading(false);
+      return; // Exit the function early if the fetch fails
     }
+    console.log(data);
+
+    const response = await data.json();
+    console.log(response);
+    const searchSamples = response;
+
+    if (searchSamples.length === 0) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const fetchedImages = [];
+      for (const sample of searchSamples) {
+        const id = sample.sampleId;
+
+        const result = await fetch(
+          `http://localhost:5000/api/getsingleimagedash/${id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+          { caches: "no-store" }
+        );
+
+        if (!result.ok) {
+          console.error(
+            `Error fetching data for sampleId ${id}: ${result.statusText}`
+          );
+          continue; // Skip to the next iteration if fetch was unsuccessful
+        }
+
+        const data = await result.json();
+        const imageUrl = data; // Adjust path if necessary
+
+        if (imageUrl) {
+          // Check if imageUrl is valid
+          fetchedImages.push(imageUrl);
+        } else {
+          console.warn(`No image URL found for sampleId ${id}`);
+        }
+      }
+
+      setResultArray(fetchedImages); // Update resultArray with valid image URLs
+      setDone(true);
+      setLoading(false);
+      console.log(resultArray);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setLoading(false);
+    }
+
+    ///
+
+    // try {
+    //   const response = await fetch(
+    //     "http://localhost:5000/api/lostitem/savedata",
+    //     {
+    //       method: "POST",
+
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify(lostItemData),
+    //     }
+    //   );
+
+    //   if (response.ok) {
+    //     toast.success("LostItem Saved Successfully!", {
+    //       position: "top-center",
+    //       onClose: () => {
+    //         router.push("/dashboard/allrequests");
+    //       },
+    //     });
+    //   } else {
+    //     toast.error("Failed to save LostItem. Please try again later.", {
+    //       position: "top-center",
+    //     });
+    //   }
+    // } catch (error) {
+    //   console.error("Error occurred while saving data:", error);
+    // }
   };
 
   return (
@@ -303,7 +410,73 @@ function DashUpload() {
       >
         Submit
       </Button>
-      <ToastContainer autoClose={3000} />
+      {/* //render sample */}
+      {done && (
+        <div className="ml-20 mr-20 ">
+          <h2 className="text-center my-8 text-3xl font-semibold uppercase">
+            See if there is similar item
+          </h2>
+
+          <div className="grid  grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-black mb-4 p-6 rounded-lg ">
+            {done &&
+              resultArray.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex justify-center items-center border border-gray-300 rounded-lg"
+                >
+                  <div className="mx-auto">
+                    <AlertDialog>
+                      <AlertDialogTrigger>
+                        {" "}
+                        <Image
+                          src={item}
+                          alt="preview_image"
+                          width="200"
+                          height={200}
+                        />
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="items-center mx-auto flex flex-col justify-center">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-center">
+                            Is this similar item?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            <Image
+                              src={item}
+                              alt="preview_image"
+                              width="350"
+                              height={350}
+                              className="object-cover"
+                            />
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>No</AlertDialogCancel>
+                          <AlertDialogAction>
+                            Email to Requestor
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          <Button
+            className="mx-auto items-center flex justify-center mb-6"
+            variant="link"
+            asChild
+          >
+            <Link href="/dashboard/allrequests">
+              <span className="text-center text-xl font-semibold">
+                No matched Item? Go back to All Requests
+              </span>
+            </Link>
+          </Button>
+        </div>
+      )}
+      {/* //render sample */}
     </>
   );
 }

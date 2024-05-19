@@ -374,6 +374,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import useCopyClipboard from "@/hooks/useClipboardCopy";
 import { CopyIcon } from "lucide-react";
+import toast from "react-hot-toast";
 
 function TagSearch() {
   const copyToClipboard = useCopyClipboard();
@@ -418,6 +419,7 @@ function TagSearch() {
   }, []);
 
   const handleTagChange = async (selectedTag) => {
+    const toastId = toast.loading("Please wait...");
     setSelectedTag(selectedTag);
     if (selectedTag) {
       try {
@@ -426,8 +428,14 @@ function TagSearch() {
         );
         const data = await response.json();
         setDocs(data);
+        if (data.length === 0) {
+          toast.error("No item found in this category", { id: toastId });
+        } else {
+          toast.success("See items below...", { id: toastId });
+        }
       } catch (error) {
         console.error("Error fetching documents:", error);
+        toast.error("Something went wrong", { id: toastId });
       }
     }
   };
@@ -548,7 +556,7 @@ function TagSearch() {
       ) : (
         <>
           {!showForm && (
-            <div>
+            <div className="px-10">
               <div className="mx-auto max-w-[300px] mt-10 ">
                 <h2 className="font-semibold text-2xl mb-2">Search by tags</h2>
                 <Select onValueChange={handleTagChange}>
@@ -564,7 +572,7 @@ function TagSearch() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-full border rounded-lg p-4 mt-14 grid grid-cols-5 gap-4">
+              <div className="w-full    rounded-lg p-4 mt-14 grid grid-cols-5 gap-4">
                 {docs.map((item, index) => (
                   <div key={index}>
                     <AlertDialog>

@@ -1,16 +1,18 @@
 "use client";
-import { Button } from "@/components/ui/button";
+
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 function Header() {
   const [user, setUser] = useState(null);
-  // useEffect(() => {
-  //   const storedUsername = localStorage.getItem("username");
-  //   if (storedUsername) {
-  //     setUser(storedUsername);
-  //   }
-  // }, []);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("username");
+    if (storedToken) {
+      setUser(storedToken);
+    }
+  }, [user]);
   return (
     <nav className="bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-sky-400 to-blue-800 p-4 px-20 flex justify-between items-center">
       <h2 className="text-white font-medium uppercase drop-shadow-md text-xl">
@@ -27,11 +29,6 @@ function Header() {
         <>
           {" "}
           <div className="flex flex-row gap-3">
-            <Button className="bg-black hover:bg-black-600" asChild>
-              <Link href="/textsearch">
-                <span className="text-xl text-white">Try our text search</span>
-              </Link>
-            </Button>
             <Button className="bg-white hover:bg-slate-200" asChild>
               <Link href="/login">
                 <span className="text-xl text-black">⇢</span>

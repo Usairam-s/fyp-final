@@ -28,7 +28,7 @@ function LoginPage() {
   };
   return (
     <div className="pt-14">
-      <div className="mx-auto flex justify-center py-10 rounded-lg drop-shadow-2xl   items-center flex-col w-[400px] bg-black">
+      <div className="mx-auto flex justify-center py-10 rounded-lg drop-shadow-2xl   items-center flex-col w-[400px] bg-slate-300">
         <h1 className="font-semibold text-6xl my-4 text-white"> 🔐 </h1>
         <form
           onSubmit={handleSubmit}
@@ -48,7 +48,9 @@ function LoginPage() {
             placeholder="Password"
             required
           />
-          <Button type="submit">Login</Button>
+          <Button className="bg-purple-600 hover:bg-purple-700" type="submit">
+            Login
+          </Button>
         </form>
       </div>
     </div>

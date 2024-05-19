@@ -1,7 +1,8 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
+
 import { cn } from "@/lib/utils";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,8 +16,8 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={cn(inter.className)}>
         <main className="overflow-y-hidden">
-          <Toaster />
           {children}
+          <Toaster />
         </main>
       </body>
     </html>

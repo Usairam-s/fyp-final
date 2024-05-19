@@ -36,10 +36,11 @@ import { cn } from "@/lib/utils";
 
 function TextSearch() {
   const [showToast, setShowToast] = useState(true);
+  //see if ttken is there remove text search bttun
 
   useEffect(() => {
     if (showToast) {
-      toast.success("Example Phrase : A black usb (Your Item, color)", {
+      toast.success("Example Phrase : A black usb (color , your item)", {
         position: "top-center",
         theme: "dark",
         autoClose: false, // Prevent auto closing
@@ -118,8 +119,9 @@ function TextSearch() {
   ///
 
   const handleButtonClick = async () => {
+    const toastId = toast;
     const data = await fetch(
-      "https://www.nyckel.com/v0.9/functions/sz7vhe91xgo9cwre/search?sampleCount=5",
+      "https://www.nyckel.com/v0.9/functions/sz7vhe91xgo9cwre/search?sampleCount=3",
       {
         method: "POST",
         headers: {

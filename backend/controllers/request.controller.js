@@ -3,10 +3,17 @@ import Venue from "../models/venue.model.js";
 import Tag from "../models/tag.model.js";
 import mongoose from "mongoose";
 import Request from "../models/request.model.js";
+import Feedback from "../models/userfeedback.model.js";
 
 export const getSingleImage = async (req, res) => {
   const { id } = req.params;
   const image = await LostItem.findOne({ sampleId: id });
+  res.json(image.imageUrl);
+};
+
+export const getSingleImageDash = async (req, res) => {
+  const { id } = req.params;
+  const image = await Request.findOne({ sampleId: id });
   res.json(image.imageUrl);
 };
 
@@ -67,13 +74,39 @@ export const saveRequest = async (req, res) => {
 
 export const checkStat = async (req, res) => {
   const { id } = req.params;
-  const request = await Request.findById(id);
-  res.status(200).json({ request });
+
+  try {
+    // Attempt to find the request by ID
+    const request = await Request.findById(id);
+
+    if (!request) {
+      // If no request is found, return a 404 Not Found response
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    // If the request is found, return it with a 200 OK response
+    return res.status(200).json({ request });
+  } catch (error) {
+    // Log the error and return a 500 Internal Server Error response
+    console.error("Error fetching request:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
 export async function allRequests(req, res) {
   const requests = await Request.find();
   res.status(200).json(requests);
+}
+export async function allRequestsCount(req, res) {
+  try {
+    const pendingRequestsCount = await Request.countDocuments({
+      status: "pending",
+    });
+    res.status(200).json({ count: pendingRequestsCount });
+  } catch (error) {
+    console.error("Error fetching pending requests count:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 }
 
 export async function noImageRequest(req, res) {
@@ -170,4 +203,23 @@ export const rejectRequest = async (req, res) => {
     console.error("Error rejecting request:", error);
     res.status(500).json({ message: "Internal server error" });
   }
+};
+
+///feeback controller
+export const userFeedback = async (req, res) => {
+  try {
+    const { feedback, name, email } = req.body;
+    const response = await Feedback.create({ name, email, feedback });
+
+    return res.status(200).json({ message: "Feedback received" });
+  } catch (error) {
+    console.error("Error while saving feedback:", error);
+    return res.status(500).json({ message: "Error while saving feedback" });
+  }
+};
+
+export const getAllFeedback = async (req, res) => {
+  const feedback = await Feedback.find({});
+
+  res.status(200).json({ feedback });
 };
