@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import React from "react";
 import { BarChartBig, CalendarDays } from "lucide-react";
 import Pending from "../../components/Pending";
+import VenueBarChart from "@/app/components/VenueBarChart";
+import FeedbackComponent from "@/app/components/FeedbackComponent";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -35,19 +37,27 @@ function Dashboard() {
             <div className="flex flex-col items-center">
               <span className=" text-purple-600">Request</span>
 
-              <span className="font-medium"> 10 reported</span>
+              <span className="font-medium"> 17 reported</span>
             </div>
             <div className="flex flex-col items-center">
               <span className="text-yellow-600">Lost Items</span>
 
-              <span className="font-medium"> 33 found</span>
+              <span className="font-medium"> 20 found</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div>
-        <Pending />
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
+          <Pending />
+        </div>
+        <div className="flex-3 w-full">
+          <VenueBarChart />
+        </div>
+      </div>
+      <div className="mt-6">
+        <FeedbackComponent />
       </div>
     </>
   );
